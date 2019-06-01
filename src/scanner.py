@@ -14,9 +14,10 @@ def scan(urls, prx=None):
     """scan multiple websites with multi processing"""
 
     vulnerables = []
-    results = {}  # store scanned results
+    nonvuln     = []
+    results     = {}  # store scanned results
 
-    childs = []  # store child processes
+    childs      = []  # store child processes
     max_processes = multiprocessing.cpu_count() * 2
     pool = multiprocessing.Pool(max_processes, init)
 
@@ -57,8 +58,9 @@ def scan(urls, prx=None):
             print()
             #std.stdebug("Target URL %s is NOT vulnerable. " % (url), end="\n")
             #exit(0)
+            nonvuln.append((url, result[1]))
 
-    return vulnerables
+    return vulnerables, nonvuln
 
 
 def __sqli(url, proxy=None):
@@ -78,7 +80,7 @@ def __sqli(url, proxy=None):
         std.stdebug("No queries in URL %s." % (url), end="\n")
         std.stdebug("", end="\n") # move cursor to new line
         std.stdebug("No queries in URL %s to test SQLi." % (url), end="\n")
-        return False, None
+        return False, url
     else:
         for query in queries:
             std.stdebug(query, end="\n")

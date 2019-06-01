@@ -24,7 +24,7 @@ def check(urls):
     pool = multiprocessing.Pool(max_processes, init)
 
     for url in urls:
-        std.stdout("[DEBUG] Getting server information of %s " % (url))
+        std.stdebug("Getting server information of %s " % (url), end="\n")
         def callback(result, url=url):
             results[url] = result
         childs.append(pool.apply_async(__getserverinfo, (url, ), callback=callback))
@@ -57,12 +57,22 @@ def check(urls):
 
 def __getserverinfo(url):
     """get server name and version of given domain"""
+    
 
-    url = urllib.parse.urlparse(url).netloc if urllib.parse.urlparse(url).netloc != '' else urllib.parse.urlparse(url).path.split("/")[0]
+    try:
+        print("Fetching server info of %s " % (url))
+        
 
-    info = []  # to store server info
-    url = "https://aruljohn.com/webserver/" + url
+        if urllib.parse.urlparse(url).netloc != '':
+            url = urllib.parse.urlparse(url).netloc
+        else:
+            url = urllib.parse.urlparse(url).path.split("/")[0]
+        std.stdebug("Server Info URL: %s " % (url))
 
+        info = []  # to store server info
+        url = "https://aruljohn.com/webserver/" + url
+    except BaseException as e:
+        std.stderr("%s" % (e))
     try:
         result = web.gethtml(url)
     except KeyboardInterrupt:
@@ -77,7 +87,7 @@ def __getserverinfo(url):
         return ['', '']
 
     for row in soup.findAll('tr'):
-        if row.findAll('td', {"class": "title"}):
+        if row.findAll('td'):
             info.append(row.findAll('td')[1].text.rstrip('\r'))
-    std.stdout("[DEBUG] %s" % (info))
+    std.stdebug("Server INFO: %s" % (info))
     return info

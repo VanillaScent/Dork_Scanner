@@ -33,8 +33,8 @@ class Crawler:
         options = Options()
         if prx is not None:
             options.identity.proxies = {
-                'http': 'http://%S' % (prx),
-                'https': 'http://%S' % (prx),
+                'http': 'http://%s' % (prx),
+                'https': 'http://%s' % (prx),
             }
         options.scope.max_depth = depth
         options.performance.max_threads = 15

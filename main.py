@@ -69,6 +69,8 @@ def main():
     if args.dork != None and args.engine == "all":
         urls = []
         scanned = []
+        vulns = []
+        scraped = []
         with open(args.dork) as dorks:
             try:
                 for dork in dorks.readlines():
@@ -87,61 +89,32 @@ def main():
                                 f.write("%s\n" % (url))
                                 f.close()
                         std.stdout("Starting scanner.")
-                        vuln = scanner.scan(websites, prx=args.proxy)
+                        vuln, nonvuln = scanner.scan(websites, prx=args.proxy)
                         std.stdout(vuln, end="\n")
                         for v in vuln:
+                            vulns.append(v)
                             print(v[0], v[1])
                             with open("vuln.txt", "a+") as f:
                                 f.write("%s - %s\n" % (v[0], v[1]))
                                 f.close()
+                        for v in nonvuln:
+                            print(v[0], v[1])
+                            result = crawler.crawl(v[0], prx=args.proxy)
+                            print(result)
+                vuln = scanner.scan(scraped, prx=args.proxy)
+                for v in vuln:
+                    if v not in vulns:
+                        vulns.append(v)
+                
+                vulnerableurls = [result[0] for result in vulns]
+                table_data = serverinfo.check(vulnerableurls)
                     
-                    #std.stdout("Scanning %s websites. Sleeping that many seconds.\n" % (len(websites)))
-
-                    #std.stdout("scanning server information")
-                    #vulnerables = scanner.scan(websites, prx=args.proxy)
-                    #print(vulnerables)
-                    #std.stdebug("Found %s vulnerable sites." % (len(vulnerables)))
-                    #print()
-                    #print()
-                    #print(vulnerables)
-                    #print()
-                    #print()
-                    #if vulnerables is []:
-                    #    std.stdout("None found.")
-                    #else:
-                    #    with open("out.txt", "a+") as f:
-                    #        f.write(str(vulnerables) + "\n\n")
-                    #        f.close()
-                    
-                    #for url, result in vulnerables:
-                    #    std.stdebug(url, result)
-                    
-                    #for url in websites:
-                    #    std.stdebug("Scanning %s " % (url))
-                    #    result = scanner.scan([url])
-                    #    if not result:
-                    #        std.stdebug("Target URL %s is not vulnerable." % (url))
-                    #        std.dump(websites, "searches.txt")
-                    #    else:
-                    #        std.stdout("Target URL %s is VULNERABLE." % (url))
-                    #        with open("vuln.txt", "a+") as f:
-                    #            f.write("\n%s" % (url))
-                    #            f.flush()
-                    #            f.close()
-                    #            std.stdebug("Result written to file.")
-                    
-                    #for vuln in vulnerables:
-                    #    print(vuln)
-                    
-                    #vulnerableurls = [result[0] for result in vulnerables]
-                    #table_data = serverinfo.check(vulnerableurls)
-                    
-                    # add db name to info
-                    #for result, info in zip(vulnerables, table_data):
-                    #    info.insert(1, result[1])  # database name
-                    #    print(result)
-                    #std.fullprint(table_data)
-                    #std.stdebug("Done.")
+                # add db name to info
+                for result, info in zip(vulns, table_data):
+                    info.insert(1, result[1])  # database name
+                    #print(result)
+                std.fullprint(table_data)
+                std.stdebug("All done! :) ")
             except:
                 print("Exception in user code:")
                 print('-'*60)
