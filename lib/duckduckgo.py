@@ -6,7 +6,6 @@ import bs4
 import logging
 
 logger = logging.getLogger(__name__)
-
 from urllib import request
 from urllib.request import urlopen
 
@@ -27,7 +26,7 @@ class Duckduckgo:
 
         self.contenttype = contenttype
         self.useragent = useragent
-        logger.debug("[DuckDuckGo] headers initialized:\n\tContent-Type: %s\n\tUser-Agent: %s\n" % (self.contenttype, self.useragent))
+        logging.debug("[DuckDuckGo] headers initialized:\n\tContent-Type: %s\n\tUser-Agent: %s\n" % (self.contenttype, self.useragent))
 
     def search(self, query, per_page=10, pages=1, proxy=None):
         """search urls from duckduckgo search"""
@@ -38,27 +37,24 @@ class Duckduckgo:
         try:
             for page in range(pages):
                 self.useragent = str(ua.get())
-                logger.debug("[DuckDuckGo] Creating HTTP object.")
+                logging.debug("[DuckDuckGo] Creating HTTP object.")
                 duckduckgosearch = self.duckduckgosearch % (urllib.parse.urlencode({'q': query}), per_page, (pages+1)*10)
                 req = request.Request(duckduckgosearch)
                 if proxy is not None:
                     req.add_header("Content-type", self.contenttype)
                     req.add_header("User-Agent", self.useragent)
                     req.set_proxy(proxy, 'http')
-                    logger.debug("[DuckDuckGo] HTTP Object Headers: %s " % (req.headers))
+                    logging.debug("[DuckDuckGo] HTTP Object Headers: %s " % (req.headers))
                 else:
                     req.add_header("Content-type", str(self.contenttype))
                     req.add_header("User-Agent", str(self.useragent))
-                    logger.debug("[DuckDuckGo] HTTP Object Headers: %s " % (req.headers))
+                    logging.debug("[DuckDuckGo] HTTP Object Headers: %s " % (req.headers))
                 
                 response = urllib.request.urlopen(req)
-                logger.debug("[DEBUG] Response is %s " % (str(response.getcode())))
+                print("[DEBUG] Response is %s " % (str(response.getcode())))
                 result = response.read().decode('utf-8')
-                #print(result)
                 urls += self.parse_links(result)
-                for url in urls:
-                    logger.debug("Found URL: %s " % (str(url)) )
-                #logging.debug(urls)
+                logging.debug(urls)
 
         except BaseException as e:
             print(e)
@@ -70,7 +66,8 @@ class Duckduckgo:
         # init with empty list
         links = []
 
-        soup = bs4.BeautifulSoup(str(html), 'lxml')
+        soup = bs4.BeautifulSoup(html, "lxml")
+        soup.prettify()
         for span in soup.findAll('div'):
             links += [a['href'] for a in span.findAll('a', {"class": "result__url js-result-extras-url"}, href=True)\
                       if a['href'] not in links]
