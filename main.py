@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-#version 0.1
+#version 0.2-beta
+#author: spiders
 
 import argparse
 import urllib, time
@@ -33,7 +34,7 @@ def initparser():
     parser.add_argument('-r', dest="reverse", help="reverse domain", action='store_true')
     parser.add_argument('-o', dest="output", help="output result into json", type=str, metavar="result.json")
     parser.add_argument('-s', action='store_true', help="output search even if there are no results")
-    parser.add_argument('-v', dest="debug", help="Debug informational stuff.", type=str)
+    parser.add_argument('-v', '--verbose', action='count', default=0)
 
 
 def get_all(dork, page, Proxy=None):
@@ -66,11 +67,17 @@ def main():
     initparser()
     args = parser.parse_args()
 
+    levels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    level = levels[min(len(levels)-1,args.verbose)] 
+    
+    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
+
     if args.dork != None and args.engine == "all":
         urls = []
         scanned = []
         vulns = []
         scraped = []
+        logging.debug("Debug Message")
         with open(args.dork) as dorks:
             try:
                 for dork in dorks.readlines():
@@ -93,19 +100,22 @@ def main():
                         std.stdout(vuln, end="\n")
                         for v in vuln:
                             vulns.append(v)
-                            print(v[0], v[1])
+                            print("vuln: URL:[%s] , DB:[%s] " % (v[0], v[1]) )
                             with open("vuln.txt", "a+") as f:
                                 f.write("%s - %s\n" % (v[0], v[1]))
                                 f.close()
                         for v in nonvuln:
-                            print(v[0], v[1])
+                            print("for v in nonvuln: %s" % (v[0]) )
                             result = crawler.crawl(v[0], prx=args.proxy)
                             print(result)
-                vuln = scanner.scan(scraped, prx=args.proxy)
-                for v in vuln:
-                    if v not in vulns:
-                        vulns.append(v)
-                
+                            for url in result:
+                                scraped.append(url)
+                        vuln = scanner.scan(scraped, prx=args.proxy)
+                        for v in vuln:
+                            if v not in vulns:
+                                for result in vulns:
+                                    print(result[0])
+                                vulns.append(v)
                 vulnerableurls = [result[0] for result in vulns]
                 table_data = serverinfo.check(vulnerableurls)
                     

@@ -1,10 +1,15 @@
+#!/usr/bin/python3
+#version: 0.2-beta
+
 from __future__ import print_function
+from __main__ import *
 
 import time
 import json
+import logging
+
 from termcolor import colored, cprint
 from terminaltables import SingleTable
-
 
 def stdin(message, params, upper=False, lower=False):
     """ask for option/input from user"""
@@ -33,7 +38,15 @@ def stdebug(message, end="\n"):
     """print a debug message for user in console"""
     prefix = colored("[DBG]", "blue")
     currentime = colored("[{}]".format(time.strftime("%H:%M:%S")), "green")
-    print("{} {} {}".format(prefix, currentime, message), end=end)
+    #print("{} {} {}".format(prefix, currentime, message), end=end)
+    logging.debug(message)
+
+def stdinfo(message, end="\n"):
+    """print an info message for user in console"""
+    prefix = colored("[INF]", "green")
+    currentime = colored("[{}]".format(time.strftime("%H:%M:%S")), "green")
+    #print("{} {} {}".format(prefix, currentime, message), end=end)
+    logging.info(message)
 
 def stdout(message, end="\n"):
     """print a message for user in console"""
