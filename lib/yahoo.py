@@ -1,9 +1,17 @@
 import urllib
 import bs4
+import logging
+
+__name__ = "python-yahoo"
+
+logger = logging.getLogger(__name__)
+
 from urllib import request
 from urllib.request import urlopen
+
 import src.web.useragents as ua
 import src.std as std
+
 DEFAULT_CONTENTYPE = "application/x-www-form-urlencoded; charset=UTF-8"
 DEFAULT_USERAGENT = ua.get()
 
@@ -14,7 +22,7 @@ class Yahoo:
     def __init__(self):
         self.yahoosearch = "http://search.yahoo.com/search?q=%s&fp=%&ei=UTF-8"
         self.init_header()
-        print("[DEBUG] Initialized Yahoo headers:\n\tContent-Type: %s \n\tUser-Agent: %s" % (self.contenttype, self.useragent))
+        logger.debug("Initialized Yahoo headers:\n\tContent-Type: %s \n\tUser-Agent: %s" % (self.contenttype, self.useragent))
 
     def init_header(self, contenttype=DEFAULT_CONTENTYPE, useragent=DEFAULT_USERAGENT):
         """initialize header"""
@@ -30,46 +38,44 @@ class Yahoo:
 
         for page in range(pages):
             page += 1
-            std.stdebug("[YAHOO] At page: %s " % (str(page)), end="\n")
+            logger.debug("[YAHOO] At page: %s " % (str(page)))
 
             dork = str(query)
-            print(dork)
-            dork = urllib.parse.quote(dork)
-            print(dork)
+            dork = urllib.parse.quote(dork) 
 
             yahoosearch = "https://search.yahoo.com/search?p={0}&pstart={1}".format(dork, str(page) ) #, per_page, (pages+1)*10)
-            std.stdebug("Setting up Yahoo Request Object for %s" % (yahoosearch), end="\n")
+            logger.debug("Setting up Yahoo Request Object for %s" % (yahoosearch))
             try:
                 req = request.Request(yahoosearch)
             except urllib.error.URLError as e:
-                std.stdebug("Something wong: %s" % (e), end="\n")
+                logging.error("Something went wrong: %s" % (e))
             except BaseException as e:
-                std.stderr("Something wong: %s" % (e), end="\n")
+                logging.error("Something went wrong: %s" % (e))
             except Exception as e:
-                std.stderr("Something wong: %s" % (e), end="\n")
+                logging.error("Something went wrong: %s" % (e))
             self.useragent = ua.get()
             try:
                 if prx is not None:
                     req.add_header(key=str("Content-type"), val=str(self.contenttype))
                     req.add_header(key=str("User-Agent"), val=str(self.useragent) )
                     req.set_proxy(prx, 'http')
-                    std.stdebug("[YAHOO] HTTP Object Headers setup ", end="\n")
+                    logger.debug("[YAHOO] HTTP Object Headers setup ")
                 else:
                     req.add_header(key=str("Content-type"), val=str(self.contenttype) )
                     req.add_header(key=str("User-Agent"), val=str(self.useragent) )
-                    std.stdebug("[YAHOO] HTTP Object Headers setup ", end="\n")
-                std.stdebug("[YAHOO] Connecting... ", end="\n")
+                    logger.debug("[YAHOO] HTTP Object Headers setup ")
+                logger.debug("[YAHOO] Connecting to search.yahoo.com ")
                 result = request.urlopen(req)
-                std.stdebug("[YAHOO] Response Code: %s " % (result.getcode()) , end="\n") 
+                logger.debug("[YAHOO] Response Code: %s " % (result.getcode())) 
                 urls += self.parse_links(result.read().decode('utf-8'))
                 for url in urls:
-                    std.stdebug("[YAHOO] Found URL: %s " % (url), end="\n")
+                    logger.debug("[YAHOO] Found URL: %s " % (url))
             except urllib.error.URLError as e:
-                std.stdebug("Something wong: %s" % (e), end="\n")
+                logger.error("[Yahoo] Something went wrong: %s" % (e))
             except BaseException as e:
-                std.stdebug("Something wong: %s" % (e), end="\n")
+                logger.error("[Yahoo] Something went wrong: %s" % (e))
             except Exception as e:
-                std.stderr(e, end="\n")
+                logger.error("[Yahoo] Something went wrong: %s" % (e))
 
         return urls
 
@@ -79,7 +85,7 @@ class Yahoo:
         # init with empty list
         links = []
 
-        std.stdebug("[YAHOO] Fetching links.", end="\n")
+        logger.debug("[YAHOO] Fetching links.")
         soup = bs4.BeautifulSoup(html, "lxml")
         for span in soup.findAll('div'):
             links += [a['href'] for a in span.findAll('a', {"class": " ac-algo fz-l ac-21th lh-24"}, href=True)\

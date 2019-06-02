@@ -6,6 +6,10 @@ __version__ = "0.0.1"
 
 import re
 import urllib
+import logging
+
+logger = logging.getLogger(__name__)
+
 from urllib import request
 from urllib.request import urlopen
 import src.std as std
@@ -40,7 +44,7 @@ class Bing:
         :param proxy: Proxy to retrieve HTML source with.
         :rtpye: str
         '''
-        std.stdebug("Setting up Bing Request Object")
+        logger.debug("Setting up Request Object")
 
         if prx is not None:
             req     = request.Request(URL, headers=self.default_headers())
@@ -51,6 +55,7 @@ class Bing:
             req     = request.Request(URL, headers=self.default_headers())
             resp    = request.urlopen(req).read()
             resp    = resp.decode('utf-8')
+        logger.debug("Retrieved pages for url: [%s]", str(URL))
         return resp
 
     def parse_links(self, html):
@@ -63,7 +68,7 @@ class Bing:
 
         return re.findall(self.regex, html)
 
-    def search(self, query, stop=int(10), prx=None):
+    def search(self, query, stop=int(100), prx=None):
         '''
         :type query : str
         :param query: Query for search.

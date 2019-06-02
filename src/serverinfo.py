@@ -5,6 +5,9 @@ import signal
 import multiprocessing
 import bs4
 import urllib
+import logging
+
+logger = logging.getLogger(__name__)
 
 import src.std as std
 from src.web import web
@@ -60,14 +63,14 @@ def __getserverinfo(url):
     
 
     try:
-        print("Fetching server info of %s " % (url))
+        #print("Fetching server info of %s " % (url))
         
 
         if urllib.parse.urlparse(url).netloc != '':
             url = urllib.parse.urlparse(url).netloc
         else:
             url = urllib.parse.urlparse(url).path.split("/")[0]
-        std.stdebug("Server Info URL: %s " % (url))
+        #std.stdebug("Server Info URL: %s " % (url))
 
         info = []  # to store server info
         url = "https://aruljohn.com/webserver/" + url
@@ -89,5 +92,5 @@ def __getserverinfo(url):
     for row in soup.findAll('tr'):
         if row.findAll('td'):
             info.append(row.findAll('td')[1].text.rstrip('\r'))
-    std.stdebug("Server INFO: %s" % (info))
+    #std.stdebug("Server INFO: %s" % (info))
     return info

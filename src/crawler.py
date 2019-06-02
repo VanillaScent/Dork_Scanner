@@ -1,5 +1,8 @@
 import re
 import urllib
+import logging
+
+logger = logging.getLogger(__name__)
 
 import src.std as std
 from nyawc.Options import Options

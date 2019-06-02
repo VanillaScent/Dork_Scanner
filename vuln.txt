@@ -514,3 +514,12 @@ http://www.bowtieoverdrives.com/catalog/catalog_inc/viewitem.php?ITEMID=13 - MyS
 http://www.fortworthpallets.com/product.php?ItemID=1464 - MySQL
 http://www.sedimental.com/catalog/index.php?ID=67 - MySQL
 http://imagesystems.com.mt/index.php?id=10 - MySQL
+http://www.bioteque.com/products/list3.php?catalogId=2&categoryId=16 - MySQL
+http://www.sedimental.com/catalog/index.php?ID=56 - MySQL
+http://www.gefen-designs.com/catalog.php?id=72329712 - MySQL
+http://tlclarkinc.com/catalog.php?Id=4 - Microsoft SQL Server
+http://www.colorfulview.com.tw/catalog.php?catalogid=1 - MySQL
+http://www.everlastsaw.com/catalog.php?cat=328 - MySQL
+http://coda.cc/product/product.php?id=4 - MySQL
+http://carnegiejewelry.com/catalog_item.php?stocknum=805-08346 - MySQL
+http://www.sedimental.com/catalog/index.php?ID=67 - MySQL

@@ -89,7 +89,7 @@ class Bing(Search):
             if prxy is None:
                 return bingsearch.search(query, stop=pages)
             else:
-                std.stdebug("Using proxy: %s" % (prxy))
+                #std.stdebug("Using proxy: %s" % (prxy))
                 return bingsearch.search(query, stop=pages, prx=prxy)
         except urllib.error.HTTPError as e:
             if e.code == 429:
@@ -116,7 +116,7 @@ class Yahoo(Search):
             if prxy is None:
                 return yahoosearch.search(query, pages)
             else:
-                std.stdebug("Using proxy: %s" % (prxy))
+                #std.stdebug("Using proxy: %s" % (prxy))
                 result = yahoosearch.search(query, pages, prx=prxy)
                 return result
         except urllib.error.HTTPError as e:

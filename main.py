@@ -7,12 +7,16 @@ import urllib, time
 import sys, traceback
 import logging
 
+from termcolor import colored, cprint
+
+#logging.basicConfig(format=(colored("%(asctime)s ", "yellow"), colored("%(levelname)s ", "blue"), colored("%(message)s", "blue") ) )
+logger = logging.getLogger("")
 from src import std
 from src import scanner
 from src import serverinfo
 from src.crawler import Crawler
 from src.web import search
-from termcolor import colored, cprint
+#from termcolor import colored, cprint
 
 bing = search.Bing()
 google = search.Google()
@@ -43,21 +47,20 @@ def get_all(dork, page, Proxy=None):
     links = []
     try:
         std.stdebug("Scraping Bing.")
-        for url in bing.search(dork, pages=10, prxy=Proxy):
+        for url in bing.search(dork, pages=100, prxy=Proxy):
             links.append(url)
-            std.stdout("Found URL: %s" % (url))
+            std.stdout("[Bing] Found URL: %s" % (url))
         for url in google.search(dork, pages=10):
             if url is not None:
                 links.append(url)
-                std.stdout("Found URL: %s" % (url))
-        for url in duckduckgo.search(dork, pages=10, prxy=Proxy):
-            if url is not None:
-                links.append(url)
-                std.stdout("Found URL: %s" % (url))
-        std.stdebug("Scraping Yahoo.")
+                std.stdout("[Google] Found URL: %s" % (url))
+        #for url in duckduckgo.search(dork, pages=10, prxy=Proxy):
+        #   if url is not None:
+        #       links.append(url)
+        #       std.stdout("[DuckDuckGo] Found URL: %s" % (url)) 
         for url in yahoo.search(dork, pages=10, prxy=Proxy):
             links.append(url)
-            std.stdout("Found URL: %s" % (url))
+            std.stdout("[Yahoo] Found URL: %s" % (url))
     except BaseException as e:
         std.stdout("An error occured. %s " % (e))
     return links
@@ -69,15 +72,16 @@ def main():
 
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     level = levels[min(len(levels)-1,args.verbose)] 
-    
-    logging.basicConfig(level=level, format="%(asctime)s %(levelname)s %(message)s")
+   
+    logger.setLevel(level=level)
+    #logging.basicConfig(level=level, format=(colored("%(asctime)s ", "yellow"), colored("%(levelname)s ", "blue"), "%(message)s"))
 
     if args.dork != None and args.engine == "all":
         urls = []
         scanned = []
         vulns = []
         scraped = []
-        logging.debug("Debug Message")
+        logger.debug("Debug Message")
         with open(args.dork) as dorks:
             try:
                 for dork in dorks.readlines():
@@ -95,36 +99,32 @@ def main():
                             with open("search.txt", "a+") as f:
                                 f.write("%s\n" % (url))
                                 f.close()
-                        std.stdout("Starting scanner.")
+                        std.stdout("Starting scanner on targets.", end="\n")
                         vuln, nonvuln = scanner.scan(websites, prx=args.proxy)
-                        std.stdout(vuln, end="\n")
+                        #std.stdout(vuln, end="\n")
                         for v in vuln:
                             vulns.append(v)
-                            print("vuln: URL:[%s] , DB:[%s] " % (v[0], v[1]) )
+                            #print("vuln: URL:[%s] , DB:[%s] " % (v[0], v[1]) )
                             with open("vuln.txt", "a+") as f:
                                 f.write("%s - %s\n" % (v[0], v[1]))
                                 f.close()
                         for v in nonvuln:
-                            print("for v in nonvuln: %s" % (v[0]) )
+                            #print("for v in nonvuln: %s" % (v[0]) )
                             result = crawler.crawl(v[0], prx=args.proxy)
-                            print(result)
+                            #print(result)
                             for url in result:
                                 scraped.append(url)
                         vuln = scanner.scan(scraped, prx=args.proxy)
-                        for v in vuln:
-                            if v not in vulns:
-                                for result in vulns:
-                                    print(result[0])
-                                vulns.append(v)
-                vulnerableurls = [result[0] for result in vulns]
-                table_data = serverinfo.check(vulnerableurls)
+                
+                #vulnerableurls = [result[0] for result in vulns]
+                #table_data = serverinfo.check(vulnerableurls)
                     
                 # add db name to info
-                for result, info in zip(vulns, table_data):
-                    info.insert(1, result[1])  # database name
-                    #print(result)
-                std.fullprint(table_data)
-                std.stdebug("All done! :) ")
+                #for result, info in zip(vulns, table_data):
+                #    info.insert(1, result[1])  # database name
+                #    #print(result)
+                #std.fullprint(table_data)
+                #std.stdebug("All done! :) ")
             except:
                 print("Exception in user code:")
                 print('-'*60)

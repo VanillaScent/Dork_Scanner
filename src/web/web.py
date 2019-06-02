@@ -1,13 +1,9 @@
 #import sys
+import logging
 import urllib.request as request
 import src.web.useragents as ua
 import src.std as std
 
-#@TODO:
-#   implement proxy usage for this function,
-#       so it is used on each site that is scanned.
-
-#       DONE!
 def gethtml(url, lastURL=False, prx=None):
     """return HTML of the given url"""
 
@@ -17,25 +13,23 @@ def gethtml(url, lastURL=False, prx=None):
         print(e)
     if prx is not None:
         req.set_proxy(prx, "http")
-        std.stdebug("Using proxy for getHTML() : %s " % (prx), end="\n")
-    else:
-        std.stdebug("No proxy for getHTML()", end="\n")
+        #std.stdebug("Using proxy for getHTML() : %s " % (prx), end="\n")
     try:
-        print("Connecting....")
+        logging.debug("Connecting to target URL: [%s] " % (url))
         reply = request.urlopen(req, timeout=10)
     except urllib.error.HTTPError as e:
-        print >> sys.stderr, "[{}] HTTP error".format(e.code)
+        #print >> sys.stderr, "[{}] HTTP error".format(e.code)
         pass
 
     except urllib2.URLError as e:
-        print >> sys.stderr, "URL error, {}".format(e.reason)
+        #print >> sys.stderr, "URL error, {}".format(e.reason)
         pass
 
     except KeyboardInterrupt:
         raise KeyboardInterrupt
 
     except:
-        print >> sys.stderr, "HTTP exception"
+        #print >> sys.stderr, "HTTP exception"
         pass
 
     try:

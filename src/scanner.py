@@ -2,6 +2,10 @@ import time
 import signal
 import multiprocessing
 import urllib
+import logging
+
+logger = logging.getLogger(__name__)
+
 import src.std as std
 import src.sqlerrors as sqlerrors
 from src.web import web
@@ -66,31 +70,31 @@ def scan(urls, prx=None):
 def __sqli(url, proxy=None):
     """check SQL injection vulnerability"""
 
-    std.stdebug("Starting SQLI payloads on {}".format(url), end="\n")
+    #std.stdebug("Starting SQLI payloads on {}".format(url), end="\n")
 
     try:
         domain = parse.urlparse(url) # domain with path without queries
-        print(domain.geturl())
-        print(domain.query)
+        #print(domain.geturl())
+        #print(domain.query)
         queries = domain.query.split("&")
     except BaseException as e:
         print(e)
     # no queries in url
     if not any(queries):
-        std.stdebug("No queries in URL %s." % (url), end="\n")
-        std.stdebug("", end="\n") # move cursor to new line
-        std.stdebug("No queries in URL %s to test SQLi." % (url), end="\n")
+        #std.stdebug("No queries in URL %s." % (url), end="\n")
+        #std.stdebug("", end="\n") # move cursor to new line
+        #std.stdebug("No queries in URL %s to test SQLi." % (url), end="\n")
         return False, url
     else:
         for query in queries:
             std.stdebug(query, end="\n")
         
         domain = domain.geturl()
-        std.stdebug("Queries found!", end="\n")
+        #std.stdebug("Queries found!", end="\n")
         payloads = ("'", "')", "';", '"', '")', '";', '`', '`)', '`;', '\\', "%27", "%%2727", "%25%27", "%60", "%5C")
         for payload in payloads:
             website = domain + "?" + ("&".join([param + payload for param in queries]))
-            std.stdebug("Fetching content of URL %s with PAYLOAD: [%s]" % (url, payload), end="\n")
+            logging.debug("Fetching content of URL %s with PAYLOAD: [%s]" % (url, payload), end="\n")
             if proxy is not None:
                 source = web.gethtml(website, prx=proxy)
                 #print(source)
@@ -101,10 +105,9 @@ def __sqli(url, proxy=None):
                 vulnerable, db = sqlerrors.check(source)
                 #print(vulnerable)
                 if vulnerable and db != None:
-                    std.stdebug("Target URL %s is vulnerable" % (url), end="\n")
+                    logging.info("Target URL %s is vulnerable" % (url))
                     return True , db
                 else:
-                    std.stddebug("%s is not vulnerbale." % (website), end="\n")
-
+                    logging.info("%s is not vulnerbale." % (website))
     print("\n")  # move cursor to new line
     return False, None
