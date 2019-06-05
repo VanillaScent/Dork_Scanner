@@ -29,10 +29,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 __all__ = ['search', 'search_images', 'search_news', 'search_videos', 'search_shop', 'search_books', 'search_apps', 'lucky']
+__name__ = "python-google"
 
 import os
 import sys
 import time
+import src.web.useragents as ua
+import logging
+
+logger = logging.getLogger(__name__)
 
 if sys.version_info[0] > 2:
     from http.cookiejar import LWPCookieJar
@@ -88,7 +93,7 @@ def get_page(url):
     """
     request = Request(url)
     request.add_header('User-Agent',
-                       'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)')
+                       str(ua.get() ) )
     cookie_jar.add_cookie_header(request)
     response = urlopen(request)
     cookie_jar.extract_cookies(response, request)

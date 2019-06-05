@@ -66,16 +66,16 @@ class Yahoo:
                     logger.debug("[YAHOO] HTTP Object Headers setup ")
                 logger.debug("[YAHOO] Connecting to search.yahoo.com ")
                 result = request.urlopen(req)
-                logger.debug("[YAHOO] Response Code: %s " % (result.getcode())) 
+                logger.debug("[YAHOO] Response Code: %s ", str(result.getcode())) 
                 urls += self.parse_links(result.read().decode('utf-8'))
                 for url in urls:
-                    logger.debug("[YAHOO] Found URL: %s " % (url))
+                    logger.debug("[YAHOO] Found URL: %s ", str(url))
             except urllib.error.URLError as e:
-                logger.error("[Yahoo] Something went wrong: %s" % (e))
+                logger.error("[Yahoo] Something went wrong: %s", str(e))
             except BaseException as e:
-                logger.error("[Yahoo] Something went wrong: %s" % (e))
+                logger.error("[Yahoo] Something went wrong: %s", str(e))
             except Exception as e:
-                logger.error("[Yahoo] Something went wrong: %s" % (e))
+                logger.error("[Yahoo] Something went wrong: %s",  str(e))
 
         return urls
 

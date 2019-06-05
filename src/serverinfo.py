@@ -7,16 +7,18 @@ import bs4
 import urllib
 import logging
 
+__name__ = "python-sysinfo"
 logger = logging.getLogger(__name__)
 
 import src.std as std
-from src.web import web
 
+from src.web import web
+from multiprocessing import Process, Lock
 
 def init():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-def check(urls):
+def check(urls, prx=None):
     """get many domains' server info with multi processing"""
 
     domains_info = []  # return in list for termtable input
@@ -27,11 +29,16 @@ def check(urls):
     pool = multiprocessing.Pool(max_processes, init)
 
     for url in urls:
-        std.stdebug("Getting server information of %s " % (url), end="\n")
+        logger.info("Getting server information of %s ", url)
         def callback(result, url=url):
             results[url] = result
-        childs.append(pool.apply_async(__getserverinfo, (url, ), callback=callback))
 
+        lock = Lock()
+        #childs.append(pool.apply_async(__getserverinfo, (url, ), callback=callback))
+        if prx is not None:
+            Process(target=__getserverinfo, args=(lock, url, prx)).start()
+        else:
+            Process(target=__getserverinfo, args=(lock, url)).start()
     try:
         while True:
             time.sleep(0.5)
@@ -58,14 +65,15 @@ def check(urls):
     return domains_info
 
 
-def __getserverinfo(url):
+def __getserverinfo(lock, url, prx=None):
     """get server name and version of given domain"""
     
 
     try:
-        #print("Fetching server info of %s " % (url))
+        lock.acquire()
+        logger.info("Fetching server info of %s ", url)
         
-
+        
         if urllib.parse.urlparse(url).netloc != '':
             url = urllib.parse.urlparse(url).netloc
         else:
@@ -77,7 +85,10 @@ def __getserverinfo(url):
     except BaseException as e:
         std.stderr("%s" % (e))
     try:
-        result = web.gethtml(url)
+        if prx is not None:
+            result = web.gethtml(url, prx=prx)
+        else:
+            result = web.gethtml(url)
     except KeyboardInterrupt:
         raise KeyboardInterrupt
 
@@ -92,5 +103,6 @@ def __getserverinfo(url):
     for row in soup.findAll('tr'):
         if row.findAll('td'):
             info.append(row.findAll('td')[1].text.rstrip('\r'))
-    #std.stdebug("Server INFO: %s" % (info))
+    logger.info("Server info is : %s", str(info))
+    
     return info

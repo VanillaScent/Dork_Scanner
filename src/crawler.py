@@ -1,3 +1,7 @@
+#!/usr/bin/python3
+#1.0-beta
+__name__ = "python-crawler"
+
 import re
 import urllib
 import logging
@@ -5,6 +9,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 import src.std as std
+import src.web.useragents as ua
+
 from nyawc.Options import Options
 from nyawc.QueueItem import QueueItem
 from nyawc.Crawler import Crawler as nyawcCrawler
@@ -17,6 +23,7 @@ class Crawler:
         self.links = []
         self.crawler = None
         self.setoptions()
+        logger.debug("Crawler initialized.")
 
     def crawl(self, url, prx=None):
         if self.crawler is None:
@@ -39,6 +46,10 @@ class Crawler:
                 'http': 'http://%s' % (prx),
                 'https': 'http://%s' % (prx),
             }
+
+        options.identity.headers.update({
+            "User-Agent": str(ua.get())
+        })
         options.scope.max_depth = depth
         options.performance.max_threads = 15
         options.callbacks.crawler_before_start = self.crawlerstart
@@ -65,6 +76,6 @@ class Crawler:
         url = queue_item.request.url
         if re.search('(.*?)(.php\?|.asp\?|.apsx\?|.jsp\?)(.*?)=(.*?)', url):
             if not url in self.links:
-                std.stdebug("Found URL with crawling process %s" % (url), end="\n")
+                logger.info("Found URL with crawling process %s", str(url))
                 self.links.append(url)
         return CrawlerActions.DO_CONTINUE_CRAWLING

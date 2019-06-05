@@ -6,6 +6,7 @@ import bs4
 import logging
 
 logger = logging.getLogger(__name__)
+
 from urllib import request
 from urllib.request import urlopen
 
@@ -26,7 +27,7 @@ class Duckduckgo:
 
         self.contenttype = contenttype
         self.useragent = useragent
-        logging.debug("[DuckDuckGo] headers initialized:\n\tContent-Type: %s\n\tUser-Agent: %s\n" % (self.contenttype, self.useragent))
+        logger.debug("[DuckDuckGo] headers initialized:\n\tContent-Type: %s\n\tUser-Agent: %s\n" % (self.contenttype, self.useragent))
 
     def search(self, query, per_page=10, pages=1, proxy=None):
         """search urls from duckduckgo search"""
@@ -37,8 +38,9 @@ class Duckduckgo:
         try:
             for page in range(pages):
                 self.useragent = str(ua.get())
-                logging.debug("[DuckDuckGo] Creating HTTP object.")
+                logger.debug("[DuckDuckGo] Creating HTTP object.")
                 duckduckgosearch = self.duckduckgosearch % (urllib.parse.urlencode({'q': query}), per_page, (pages+1)*10)
+                logger.info("DuckDuckGo URL is : %s ", str(duckduckgosearch) )
                 req = request.Request(duckduckgosearch)
                 if proxy is not None:
                     req.add_header("Content-type", self.contenttype)
