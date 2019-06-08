@@ -133,27 +133,42 @@ def search(dork, engine, proxy=None):
     if engine == "duckduckgo":
         #@TODO:
         #   Fix duckduckgo.
+        logger.info("Beware: DuckdDuckGo library is SOMEWHAT functional.")
         ddg = duckduckgo.search(dork, 10, prxy=proxy)
         if ddg is not None:
             for url in ddg:
                 links.append(url)
-                std.stdout("[DuckDuckGo] Found URL: %s " %(url))
+                std.stdout("[DuckDuckGo] Found URL: %s " %(url)
+        if ddg is None:
+            logger.critical("Found no urls on DuckDuckGo.")
+        else:
+            logger.critical("what the fuck?")
+    
     if engine == "google":
         #@TODO:
         #   Add proxy usage to google lib
-        logger.info("Google library Not supported yet.")
+        logger.critical("Google library NOT supported yet.")
         #for url in google.search(dork, pages=10, proxy):
         #    links.append(url)
         #    std.stdout("[Google] Found URL: %s " % (url))
+    
     if engine == "bing":
         for url in bing.search(dork, pages=10, prxy=proxy):
             links.append(url)
             std.stdout("[Bing] Found URL: %s " % (url))
+
     if engine == "yahoo":
+        logger.critical("Yahoo library NOT supported yet.")
         for url in yahoo.search(dork, pages=10, prxy=proxy):
             links.append(url)
             std.stdout("[Yahoo] Found URL: %s" % (url))
+
     if engine == "yandex":
+        #@TODO:
+        #   Fix URL fetching, currently only fetches yandex urls because of captchas.
+        #   Should be fixable..
+        logger.info("Yandex library is not working just yet.")
+
         for url in yandex.search(dork, pages=10, prxy=proxy):
             links.append(url)
             std.stdout("[Yandex] Found URL/: %s" % (url))
