@@ -42,14 +42,15 @@ class Duckduckgo:
         req = request.Request(duckduckgosearch)
 
         if proxy is not None:
-            req.set_proxy(proxy, 'http')
+            prType, proxy = proxy.split("://")
+            req.set_proxy(proxy, prType)
         
         req.add_header("Accept","*/*")
         req.add_header("Referrer", "https://duckduckgo.com/")
         req.add_header("Content-type", str(self.contenttype))
         req.add_header("User-Agent", str(self.useragent))
         logger.info("HTTP Object Headers: %s ", str(req.headers))
-                
+         
         response = urllib.request.urlopen(req, timeout=5)
         logger.info("Response is %s ", str(response.getcode()))
         result = response.read().decode('utf-8')
