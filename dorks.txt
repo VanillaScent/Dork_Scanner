@@ -1,12 +1,3 @@
-news
-nieuws
-cyka
-blyat
-savings
-booking
-flight
-forum
-test
 catalog.php
 catalog.php?CatalogID=
 catalog_item.php?ID=

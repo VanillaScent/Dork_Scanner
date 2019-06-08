@@ -65,7 +65,7 @@ def scan(urls, prx=None):
     nonvuln     = []
 
     childs      = []  # store child processes
-    max_processes = multiprocessing.cpu_count() * 2
+    max_processes = multiprocessing.cpu_count() * 4
     pool = multiprocessing.Pool(max_processes, init)
 
     results = [pool.apply_async(sqli, args=(url, prx) ) for url in urls]

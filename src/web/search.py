@@ -1,4 +1,4 @@
-# search vulnerabilities by dock
+# search vulnerabilities by dork
 
 import sys
 import urllib
@@ -7,9 +7,11 @@ from lib import bing
 from lib import google
 from lib import yahoo
 from lib import duckduckgo
+from lib import yandex
 
 import src.std as std
 
+yandex = yandex.Yandex()
 bingsearch = bing.Bing()
 yahoosearch = yahoo.Yahoo()
 duckduckgo = duckduckgo.Duckduckgo()
@@ -18,6 +20,18 @@ class Search:
     """basic search class that can be inherited by other search agents like Google, Yandex"""
     pass
 
+class Yandex(Search):
+    def search(self, dork, pages=10, prxy=None):
+        """search and return and array of urls from Yandex"""
+
+        urls = []
+        query = dork
+
+        for url in yandex.search(query=query, pages=pages, prx=prxy):
+            urls.append(url)
+
+        return urls
+
 class DuckDuckGo(Search):
     def search(self, query, pages=10, prxy=None):
         """search and return an array of urls from DuckDuckgo"""
@@ -25,7 +39,7 @@ class DuckDuckGo(Search):
         urls = []
 
         try:
-            for url in duckduckgo.search(query, per_page=10, pages=10, proxy=prxy):
+            for url in duckduckgo.search(query, proxy=prxy):
                 urls.append(url)
         except urllib.error.HTTPError as e:
             if e.code == 429:
@@ -86,11 +100,7 @@ class Bing(Search):
     def search(self, query, pages=10, prxy=None):
         """search and return an array of urls from Bing"""
         try:
-            if prxy is None:
-                return bingsearch.search(query, stop=pages)
-            else:
-                #std.stdebug("Using proxy: %s" % (prxy))
-                return bingsearch.search(query, stop=pages, prx=prxy)
+            return bingsearch.search(query, stop=pages, prx=prxy)
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 std.stderr("Too many requests.")
