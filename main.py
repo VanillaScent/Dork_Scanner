@@ -138,7 +138,7 @@ def search(dork, engine, proxy=None):
         if ddg is not None:
             for url in ddg:
                 links.append(url)
-                std.stdout("[DuckDuckGo] Found URL: %s " %(url)
+                std.stdout("[DuckDuckGo] Found URL: %s " %(url))
         if ddg is None:
             logger.critical("Found no urls on DuckDuckGo.")
         else:
