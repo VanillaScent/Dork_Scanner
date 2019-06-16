@@ -19,7 +19,7 @@ class Duckduckgo:
     """DuckDuckGo search engine scraper"""
 
     def __init__(self):
-        self.duckduckgosearch = "https://duckduckgo.com/html/?q=%s"
+        self.duckduckgosearch = "https://duckduckgo.com/=%s"
         self.init_header()
 
     def init_header(self, contenttype=DEFAULT_CONTENTYPE, useragent=DEFAULT_USERAGENT):
@@ -67,6 +67,7 @@ class Duckduckgo:
         links = []
 
         soup = bs4.BeautifulSoup(html, "lxml")
-        links += [a['href'] for a in soup.findAll('a', {"class": "result__a"}, href=True) if a['href'] not in links and str(a['href']).startswith('/l/') is False]
+        divs = soup.findAll('div', {"class": "links_main"})
+        for div in divs:
+            links += [a['href'] for a in div.findAll('a', {"class": "result__url"}, href=True) if a['href'] not in links and str(a['href']).startswith('/l/') is False]
         return links
-

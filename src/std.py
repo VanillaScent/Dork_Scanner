@@ -117,10 +117,10 @@ def normalprint(data):
     # ]
 
     title = " VULNERABLE URLS "
-    table_data = [["index", "url", "db"]]
+    table_data = [["index", "url", "db", "language"]]
     # add into table_data by one by one
-    for index, url in enumerate(data):
-        table_data.append([index+1, url[0], url[1]])
+    for index, item in enumerate(data):
+        table_data.append([index+1, item[0], item[1], item[2]])
 
     table = SingleTable(table_data, title)
     print(table.table)

@@ -35,7 +35,7 @@ class Bing:
             'Accept-Encoding': 'identity'
             }
 
-    def get_page(self, URL, prx=None):
+    def get_page(self, URL, proxy=None):
         '''
         :type URL : str
         :param URL: URL to get HTML source 
@@ -45,17 +45,14 @@ class Bing:
         :rtpye: str
         '''
         logger.debug("Setting up Request Object")
-
-        if prx is not None:
-            req     = request.Request(URL, headers=self.default_headers())
-            req.set_proxy(prx, 'http')
-            resp    = request.urlopen(req).read()
-            resp    = resp.decode('utf-8')
-        else:
-            req     = request.Request(URL, headers=self.default_headers())
-            resp    = request.urlopen(req).read()
-            resp    = resp.decode('utf-8')
-        logger.debug("Retrieved pages for url: [%s]", str(URL))
+        req = request.Request(URL, headers=self.default_headers())
+        if proxy is not None:
+            prType, proxy = proxy.split("://")
+            req.set_proxy(proxy, prType)
+        resp    = request.urlopen(req).read()
+        resp    = resp.decode('utf-8')
+        
+        logger.info("Retrieved pages for url: [%s]", URL)
         return resp
 
     def parse_links(self, html):
@@ -68,7 +65,7 @@ class Bing:
 
         return re.findall(self.regex, html)
 
-    def search(self, query, stop=int(100), prx=None):
+    def search(self, query, stop=int(100), proxy=None):
         '''
         :type query : str
         :param query: Query for search.
@@ -87,12 +84,9 @@ class Bing:
         for page in range(int(round(int(stop), -1)) // 10):
             URL = (self.bingsearch % (urllib.parse.urlencode({'q': query}))) + '&first=' + str(start)
             
-            if prx is None:
-                html    = self.get_page(URL)
-                result  = self.parse_links(html)
-            else:
-                html    = self.get_page(URL, prx)
-                result  = self.parse_links(html)
+            html    = self.get_page(URL, proxy)
+            result  = self.parse_links(html)
+            
             [links.append(_) for _ in result if _ not in links]
 
             start = start + 10

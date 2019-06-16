@@ -30,7 +30,7 @@ class Yahoo:
         self.contenttype = contenttype
         self.useragent = useragent
 
-    def search(self, query, per_page=10, pages=10, prx=None):
+    def search(self, query, per_page=10, pages=10, proxy=None):
         """search urls from yahoo search"""
 
         # store searched urls
@@ -43,41 +43,28 @@ class Yahoo:
             dork = str(query)
             dork = urllib.parse.quote(dork) 
 
-            yahoosearch = "https://search.yahoo.com/search?p={0}&pstart={1}".format(dork, str(page) ) #, per_page, (pages+1)*10)
-            logger.debug("Setting up Yahoo Request Object for %s" % (yahoosearch))
-            try:
-                req = request.Request(yahoosearch)
-            except urllib.error.URLError as e:
-                logging.error("Something went wrong: %s" % (e))
-            except BaseException as e:
-                logging.error("Something went wrong: %s" % (e))
-            except Exception as e:
-                logging.error("Something went wrong: %s" % (e))
+            yahoosearch = "https://yahoo.com/search?p={0}&pstart={1}".format(dork, str(page) ) #, per_page, (pages+1)*10)
+            logger.debug("Setting up Yahoo Request Object for %s", yahoosearch)
+            req = request.Request(yahoosearch)
             self.useragent = ua.get()
-            try:
-                if prx is not None:
-                    req.add_header(key=str("Content-type"), val=str(self.contenttype))
-                    req.add_header(key=str("User-Agent"), val=str(self.useragent) )
-                    req.set_proxy(prx, 'http')
-                    logger.debug("[YAHOO] HTTP Object Headers setup ")
-                else:
-                    req.add_header(key=str("Content-type"), val=str(self.contenttype) )
-                    req.add_header(key=str("User-Agent"), val=str(self.useragent) )
-                    logger.debug("[YAHOO] HTTP Object Headers setup ")
-                logger.debug("[YAHOO] Connecting to search.yahoo.com ")
-                result = request.urlopen(req)
-                logger.debug("[YAHOO] Response Code: %s ", str(result.getcode())) 
-                urls += self.parse_links(result.read().decode('utf-8'))
-                for url in urls:
-                    logger.debug("[YAHOO] Found URL: %s ", str(url))
-            except urllib.error.URLError as e:
-                logger.error("[Yahoo] Something went wrong: %s", str(e))
-            except BaseException as e:
-                logger.error("[Yahoo] Something went wrong: %s", str(e))
-            except Exception as e:
-                logger.error("[Yahoo] Something went wrong: %s",  str(e))
-
-        return urls
+            req.add_header(key=str("Content-type"), val=str(self.contenttype))
+            req.add_header(key=str("User-Agent"), val=str(self.useragent) )
+            if proxy is not None:
+                prType, proxy = proxy.split("://")
+                req.set_proxy(proxy, prType)
+            
+            req.add_header(key=str("Content-type"), val=str(self.contenttype) )
+            req.add_header(key=str("User-Agent"), val=str(self.useragent) )
+            logger.debug("[YAHOO] HTTP Object Headers setup ")
+            logger.debug("[YAHOO] Connecting to search.yahoo.com ")
+            result = request.urlopen(req)
+            logger.debug("[YAHOO] Response Code: %s ", str(result.getcode())) 
+            urls += self.parse_links(result.read().decode('utf-8'))
+            
+            for url in urls:
+                logger.debug("[YAHOO] Found URL: %s ", str(url))
+            
+            return urls
 
     def parse_links(self, html):
         """scrape results (url) from html"""

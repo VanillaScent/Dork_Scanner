@@ -1,4 +1,4 @@
-# search vulnerabilities by dork
+# search vulnerabilities by dock
 
 import sys
 import urllib
@@ -7,39 +7,30 @@ from lib import bing
 from lib import google
 from lib import yahoo
 from lib import duckduckgo
-from lib import yandex
 
 import src.std as std
 
-yandex = yandex.Yandex()
 bingsearch = bing.Bing()
 yahoosearch = yahoo.Yahoo()
 duckduckgo = duckduckgo.Duckduckgo()
-
-class Search:
-    """basic search class that can be inherited by other search agents like Google, Yandex"""
-    pass
+class Search():
+    def search():
+        pass
 
 class Yandex(Search):
-    def search(self, dork, pages=10, prxy=None):
-        """search and return and array of urls from Yandex"""
-
-        urls = []
-        query = dork
-
-        for url in yandex.search(query=query, pages=pages, prx=prxy):
-            urls.append(url)
-
-        return urls
+    """In the makign... DuckDuckGo Search"""
+    def search(self, query, pages=10, proxy=None):
+        logger.info("Not availible yet.")
+        return False
 
 class DuckDuckGo(Search):
-    def search(self, query, pages=10, prxy=None):
+    def search(self, query, pages=10, proxy=None):
         """search and return an array of urls from DuckDuckgo"""
 
         urls = []
 
         try:
-            for url in duckduckgo.search(query, proxy=prxy):
+            for url in duckduckgo.search(query, per_page=10, pages=10, proxy=prxy):
                 urls.append(url)
         except urllib.error.HTTPError as e:
             if e.code == 429:
@@ -97,10 +88,10 @@ class Google(Search):
             return urls
 
 class Bing(Search):
-    def search(self, query, pages=10, prxy=None):
+    def search(self, query, pages=10, proxy=None):
         """search and return an array of urls from Bing"""
         try:
-            return bingsearch.search(query, stop=pages, prx=prxy)
+                return bingsearch.search(query, 10, proxy)
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 std.stderr("Too many requests.")

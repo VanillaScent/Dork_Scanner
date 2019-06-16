@@ -25,7 +25,7 @@ class Crawler:
         self.setoptions()
         logger.debug("Crawler initialized.")
 
-    def crawl(self, url, prx=None):
+    def crawl(self, url):
         if self.crawler is None:
             print("Cralwer is not setup")
             return
@@ -37,21 +37,21 @@ class Crawler:
         self.crawler.start_with(Request(domain))
         return self.links
 
-    def setoptions(self, depth=1, prx=None):
+    def setoptions(self, depth=1, proxy=None, threads=15):
         """Define how far user want to crawl"""
 
         options = Options()
-        if prx is not None:
+        if proxy is not None:
+
             options.identity.proxies = {
-                'http': 'http://%s' % (prx),
-                'https': 'http://%s' % (prx),
+                'http': '%s' % (proxy),
             }
 
         options.identity.headers.update({
-            "User-Agent": str(ua.get())
+            "User-Agent": ua.get_clean(),
         })
         options.scope.max_depth = depth
-        options.performance.max_threads = 15
+        options.performance.max_threads = threads
         options.callbacks.crawler_before_start = self.crawlerstart
         options.callbacks.crawler_after_finish = self.crawlerfinish
         options.callbacks.request_before_start = self.requeststart
@@ -74,8 +74,7 @@ class Crawler:
     def requestfinish(self, queue, queue_item, new_queue_items):
         # Called after the crawler finishes a request. Default is a null route.
         url = queue_item.request.url
-        if re.search('(.*?)(.php\?|.asp\?|.apsx\?|.jsp\?)(.*?)=(.*?)', url):
-            if not url in self.links:
-                logger.info("Found URL with crawling process %s", str(url))
-                self.links.append(url)
+        if not url in self.links:
+            logger.info("Found URL with crawling process %s", str(url))
+            self.links.append(url)
         return CrawlerActions.DO_CONTINUE_CRAWLING
