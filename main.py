@@ -14,7 +14,7 @@ from termcolor import colored, cprint
 #logging.basicConfig(format=(colored("%(asctime)s ", "yellow"), colored("%(levelname)s ", "blue"), colored("%(message)s", "blue") ) )
 logger = logging.getLogger()
 ch = logging.StreamHandler()
-formatter = logging.Formatter(str(colored("[%(levelname)s]", "blue") +  " " + colored("[%(asctime)s]", "green") + " " + colored("[%(name)s]", "cyan") + " - " + colored("%(message)s", "blue") ), "%H:%M:%S")
+formatter = logging.Formatter(str(colored("[%(levelname)s]", "white") +  " " + colored("[%(asctime)s]", "green") + " " + colored("[%(name)s]", "cyan") + " - " + colored("%(message)s", "white") ), "%H:%M:%S")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
@@ -52,6 +52,7 @@ def initparser():
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-r', '--read', dest='read', action='store_true', help="Read JSON list to formatted STD list")
     parser.add_argument('-tr', '--threads', dest="threads", help="scanner max thread amount", type=int, default=25, metavar="50")   
+    parser.add_argument('-l', '--list', dest="list", help="scan website list", type=str, default="search.txt", metavar="urls.txt")   
 
 
 def get_server_info(url, proxy=None):
@@ -145,6 +146,22 @@ def get_all(dork, page, proxy=None, safe=True):
         std.stdout("An error occured. %s " % (e))
     return links
 
+def scan(file="search.txt"):
+    std.stdout("Starting scanner on targets.", end="\n")
+    websites = open(file, "r").readlines()
+    vuln = scanner.scan(websites, proxy=args.proxy, threads=args.threads)
+    std.stdout(vuln, end="\n")
+    for v in vuln:
+        vulns.append(v)
+        url = v[0]
+        db  = v[1]
+        std.stdout("Found vuln: URL: [ {0} ] , DB: [ {1} ] " % (url, db))
+        with open("vuln.txt", "a+") as f:
+            tiùe = time.now()
+            f.write("%s - %s\n - [%s]" % (url, db, time))
+            f.close()
+    exit(1)
+
 def search(dork, engine, proxy=None):
     links = []
 
@@ -211,6 +228,8 @@ def main():
         vulns = single_scan(args.target, proxy=args.proxy, depth=args.scrape, threads=args.threads)
         logger.debug("%s", (str(vulns)))
         exit(1)
+    if args.list != None:
+        scan(file=str(args.list))
 
     if args.target != None and args.serverinfo is True:
         logger.info("Fetching server info of %s ", args.target)

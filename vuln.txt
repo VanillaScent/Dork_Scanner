@@ -1,4 +1,4 @@
-True - http://www.colorfulview.com.tw/catalog.php?catalogid=1
-True - http://www.nichegardens.com/catalog/item.php?id=1235
-True - http://www.sedimental.com/catalog/index.php?ID=67
-True - http://coda.cc/product/product.php?id=4
+http://www.colorfulview.com.tw/catalog.php?catalogid=1
+http://www.nichegardens.com/catalog/item.php?id=1235
+http://www.sedimental.com/catalog/index.php?ID=67
+http://coda.cc/product/product.php?id=4
