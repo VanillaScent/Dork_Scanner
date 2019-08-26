@@ -29,7 +29,7 @@ class Crawler:
         if self.crawler is None:
             print("Cralwer is not setup")
             return
-
+        
         parsedurl = urllib.parse.urlparse(url)
         domain = parsedurl.scheme + "://" + parsedurl.netloc
 

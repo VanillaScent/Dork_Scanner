@@ -7,16 +7,31 @@ from lib import bing
 from lib import google
 from lib import yahoo
 from lib import duckduckgo
+from lib import ecosia
 
 import src.std as std
 
-bingsearch = bing.Bing()
+bingsearch  = bing.Bing()
 yahoosearch = yahoo.Yahoo()
-duckduckgo = duckduckgo.Duckduckgo()
+duckduckgo  = duckduckgo.Duckduckgo()
+ecosia      = ecosia.Ecosia() 
 class Search():
     def search():
         pass
 
+class Ecosia(Search):
+    """done?"""
+    def search(self, query, pages=10, proxy=None):
+        page = 1
+        links = []
+        #logger.info("Fetching pages on Ecosia.org")
+        while(page < pages):
+            for url in ecosia.get_page(query, page, None):
+                links.append(url)
+            
+            page += 1
+        return links
+	
 class Yandex(Search):
     """In the makign... DuckDuckGo Search"""
     def search(self, query, pages=10, proxy=None):
