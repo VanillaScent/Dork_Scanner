@@ -127,23 +127,23 @@ def get_all(dork, page, proxy=None, safe=True):
     
     links = []
     try:
-        for url in ecosia.search("?refid=", 50):
+        for url in ecosia.search("?refid=", 50, proxy=proxy):
             links.append(url)
             logger.info("[Ecosia] Found page: %s" % (url))
         for url in bing.search(dork, pages=50, proxy=proxy):
             links.append(url)
             std.stdout("[Bing] Found URL: %s" % (url))
-        for url in google.search(dork, pages=10):
+        for url in google.search(dork, pages=10, proxy=proxy):
             if url is not None:
                 links.append(url)
                 std.stdout("[Google] Found URL: %s" % (url))
         for url in duckduckgo.search(query=dork):
             links.append(url)
             std.stdout("[DuckDuckGo] Found URL: %s" % (url)) 
-        for url in yahoo.search(dork, pages=10, prxy=Proxy):
+        for url in yahoo.search(dork, per_page=10, pages=10, proxy=proxy):
             links.append(url)
             std.stdout("[Yahoo] Found URL: %s" % (url))
-        for url in yandex.search(dork, pages=10, prxy=Proxy):
+        for url in yandex.search(dork, pages=10, proxy=Proxy):
             links.append(url)
             std.stdout("[Yandex] Found URL: %s" % (url))
     except BaseException as e:

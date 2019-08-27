@@ -70,6 +70,7 @@ def scan(urls,  threads=50, proxy=None):
     vulnerables = [] 
     tested = []
 
+    exitFlag = 0
     thread_list = []
     q   = queue.Queue()
 
@@ -77,23 +78,24 @@ def scan(urls,  threads=50, proxy=None):
     time.sleep(4)
     def worker():
     	while True:
-	        nonlocal i
 	        url, proxy = q.get() # get queue item
+	        if(url is None):
+	        	break
 	        logger.info("Starting worker on %s " % (url))
 	        test = sqli(url, proxy)
 	        if test[0]:
 	            logger.info("vulnerable URL found  %s ", test[1] )
 	            tested.append((test[1], test[2]))
 	        logger.info("Thread finished.")
-	        #print(test)
+	        print(test)
 	        q.task_done()
 
 
     for url in urls:
     	try:
     		domain = parse.urlparse(url)  # domain with path without queries
-    		if domain is not None:
-    			print(domain.hostname)
+    		if domain.hostname is not None:
+    			logger.debug(domain.hostname)
     			#sqli(url, proxy)
     			q.put((url, proxy))
     	except:
@@ -104,13 +106,14 @@ def scan(urls,  threads=50, proxy=None):
         t.daemon = True
         thread_list.append(t)
         t.start()
-        #t.join(1.0)
-
+        
     logger.info("Waiting for threads to finish to join.")
-    print(thread_list)
+    logger.info(thread_list)
     for thread in thread_list:
     	logger.info("Joining thread: %s" % (thread.name))
     	thread.join(1.0)
+    q.join()
+    exitFlag = 1
     logger.info("Done waiting for threads, all finished and returning %s results", len(tested))
     return tested
 

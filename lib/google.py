@@ -77,7 +77,7 @@ except Exception:
 
 
 # Request the given URL and return the response page, using the cookie jar.
-def get_page(url):
+def get_page(url, proxy=None):
     """
     Request the given URL and return the response page, using the cookie jar.
 
@@ -94,6 +94,11 @@ def get_page(url):
     request = Request(url)
     request.add_header('User-Agent',
                        str(ua.get() ) )
+    if proxy is not None:
+        prType, proxy = proxy.split("://")
+        req.set_proxy(proxy, prType)
+        logger.debug("Using proxy: %s ", proxy)
+    
     cookie_jar.add_cookie_header(request)
     response = urlopen(request)
     cookie_jar.extract_cookies(response, request)
@@ -175,7 +180,7 @@ def lucky(query, tld='com', lang='en', tbs='0', safe='off', only_standard=False,
 
 # Returns a generator that yields URLs.
 def search(query, tld='com', lang='en', tbs='0', safe='off', num=10, start=0,
-           stop=None, pause=2.0, only_standard=False, extra_params={}, tpe=''):
+           stop=None, pause=2.0, only_standard=False, extra_params={}, tpe='', proxy=None):
     """
     Search the given query string using Google.
 
@@ -275,7 +280,7 @@ def search(query, tld='com', lang='en', tbs='0', safe='off', num=10, start=0,
         time.sleep(pause)
 
         # Request the Google Search results page.
-        html = get_page(url)
+        html = get_page(url, proxy)
 
         # Parse the response and process every anchored URL.
         if is_bs4:

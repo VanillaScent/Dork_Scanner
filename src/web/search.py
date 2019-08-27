@@ -30,7 +30,7 @@ class Ecosia(Search):
 	
 class Yandex(Search):
     """In the makign... DuckDuckGo Search"""
-    def search(self, query, pages=10, proxy=None):
+    def search(self, query, per_page=10, pages=10, proxy=None):
         logger.info("Not availible yet.")
         return False
 
@@ -41,7 +41,7 @@ class DuckDuckGo(Search):
         urls = []
 
         try:
-            for url in duckduckgo.search(query, per_page=10, pages=10, proxy=prxy):
+            for url in duckduckgo.search(query, pages=10, proxy=proxy):
                 urls.append(url)
         except urllib.error.HTTPError as e:
             if e.code == 429:
@@ -67,7 +67,7 @@ class DuckDuckGo(Search):
             return urls
 
 class Google(Search):
-    def search(self, query, pages=10):
+    def search(self, query, pages=10, proxy=None):
         """search and return an array of urls from Google"""
 
         urls = []
@@ -122,14 +122,13 @@ class Bing(Search):
             exit("Unknown error occurred\t%s" % (str(e)))
 
 class Yahoo(Search):
-    def search(self, query, pages=5, prxy=None):
+    def search(self, query, pages=5, proxy=None):
         """search and return an array of urls from Yahoo"""
         try:
-            if prxy is None:
+            if proxy is None:
                 return yahoosearch.search(query, pages)
             else:
-                #std.stdebug("Using proxy: %s" % (prxy))
-                result = yahoosearch.search(query, pages, prx=prxy)
+                result = yahoosearch.search(query, pages, proxy=proxy)
                 return result
         except urllib.error.HTTPError as e:
             if e.code == 429:

@@ -62,7 +62,7 @@ class Yahoo:
             urls += self.parse_links(result.read().decode('utf-8'))
             
             for url in urls:
-                logger.debug("[YAHOO] Found URL: %s ", str(url))
+                logger.info("[YAHOO] Found URL: %s ", str(url))
             
             return urls
 

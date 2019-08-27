@@ -30,7 +30,7 @@ class Yandex:
         self.contenttype = contenttype
         self.useragent = useragent
 
-    def search(self, query, pages=10, prx=None):
+    def search(self, query, pages=10, proxy=None):
         """search urls from yahoo search"""
 
         # store searched urls
@@ -38,25 +38,25 @@ class Yandex:
 
         for page in range(pages):
             page += 1
-            logger.info("At page: %s ", page)
+            logger.debug("At page: %s ", page)
             query = urllib.parse.quote(str(query)) 
 
             yandexsearch = self.yandexsearch.format(query, str(page) ) #, per_page, (pages+1)*10)
-            logger.info("Setting up Yandex Request Object for %s", yandexsearch)
+            logger.debug("Setting up Yandex Request Object for %s", yandexsearch)
             req = request.Request(yandexsearch)
 
-            if prx is not None:
-                req.set_proxy(prx, 'http')
-                logger.info("HTTP Object Headers setup ")
+            if proxy is not None:
+                req.set_proxy(proxy, 'http')
+                logger.debug("HTTP Object Headers setup ")
             
             req.add_header(key=str("Content-type"), val=str(self.contenttype) )
             req.add_header(key=str("User-Agent"), val=str(self.useragent) )
-            logger.info("HTTP Object Headers setup ")
+            logger.debug("HTTP Object Headers setup ")
             
-            logger.info("Connecting to yandex.com ")
+            logger.debug("Connecting to yandex.com ")
             result = request.urlopen(req)
 
-            logger.info("Response Code: %s ", str(result.getcode())) 
+            logger.debug("Response Code: %s ", str(result.getcode())) 
             urls += self.parse_links(result.read().decode('utf-8'))
             for url in urls:
                 logger.info("Found URL: %s ", str(url))
