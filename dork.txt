@@ -1,5 +1,3 @@
-?refId=
-?regId=
 cart.php?id=
 checkout.php?id=
 checkout.php?catid=

@@ -34,11 +34,7 @@ def gethtml(url, lastURL=False, proxy=None):
         logger.debug("Response %s", reply.getcode())
         html = reply.read().decode('utf-8', 'ignore')
         logger.debug("Reply length: %s ", str( len(html) ) )
-    except:
-        print("Exception in user code:")
-        print("-"*60)
-        traceback .print_exc(file=sys.stdout)
-        print("-"*60)    
+    except: 
         return False
     if lastURL == True:
         return html, reply.url

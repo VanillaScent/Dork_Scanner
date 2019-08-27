@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 sql_errors = {
-    "MySQL": (r"SQL syntax.*MySQL", r"Warning.*mysql_.*", r"MySQL Query fail.*", r"SQL syntax.*MariaDB server", r"MySQL", r"mysql_fetch_array"),
+    "MySQL": (r"SQL syntax.*MySQL", r"Warning.*mysql_.*", r"MySQL Query fail.*", r"SQL syntax.*MariaDB server", r"mysql_fetch_array"),
     "PostgreSQL": (r"PostgreSQL.*ERROR", r"Warning.*\Wpg_.*", r"Warning.*PostgreSQL"),
     "Microsoft SQL Server": (r"OLE DB.* SQL Server", r"(\W|\A)SQL Server.*Driver", r"Warning.*odbc_.*", r"Warning.*mssql_", r"Msg \d+, Level \d+, State \d+", r"Unclosed quotation mark after the character string", r"Microsoft OLE DB Provider for ODBC Drivers"),
     "Microsoft Access": (r"Microsoft Access Driver", r"Access Database Engine", r"Microsoft JET Database Engine", r".*Syntax error.*query expression"),
@@ -21,7 +21,7 @@ sql_errors = {
 
 def check(html):
     """check SQL error is in HTML or not"""
-    logger.info("Starting SQL error checks.")
+    logger.debug("Starting SQL error checks.")
     for db, errors in sql_errors.items():
         for error in errors:
             if re.compile(error).search(html):

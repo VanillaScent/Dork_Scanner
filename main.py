@@ -25,6 +25,7 @@ from src.crawler import Crawler
 from src.web import search
 #from termcolor import colored, cprint
 
+ecosia = search.Ecosia()
 bing = search.Bing()
 google = search.Google()
 duckduckgo = search.DuckDuckGo()
@@ -52,7 +53,7 @@ def initparser():
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-r', '--read', dest='read', action='store_true', help="Read JSON list to formatted STD list")
     parser.add_argument('-tr', '--threads', dest="threads", help="scanner max thread amount", type=int, default=25, metavar="50")   
-    parser.add_argument('-l', '--list', dest="list", help="scan website list", type=str, default="search.txt", metavar="urls.txt")   
+    parser.add_argument('-l', '--list', dest="list", help="scan website list", type=str, default=None, metavar="urls.txt")   
 
 
 def get_server_info(url, proxy=None):
@@ -126,7 +127,10 @@ def get_all(dork, page, proxy=None, safe=True):
     
     links = []
     try:
-        for url in bing.search(dork, pages=100, proxy=proxy):
+        for url in ecosia.search("?refid=", 50):
+            links.append(url)
+            logger.info("[Ecosia] Found page: %s" % (url))
+        for url in bing.search(dork, pages=50, proxy=proxy):
             links.append(url)
             std.stdout("[Bing] Found URL: %s" % (url))
         for url in google.search(dork, pages=10):
@@ -228,8 +232,6 @@ def main():
         vulns = single_scan(args.target, proxy=args.proxy, depth=args.scrape, threads=args.threads)
         logger.debug("%s", (str(vulns)))
         exit(1)
-    if args.list != None:
-        scan(file=str(args.list))
 
     if args.target != None and args.serverinfo is True:
         logger.info("Fetching server info of %s ", args.target)
@@ -244,58 +246,47 @@ def main():
         scraped = []
         
         with open(args.dork) as dorks:
-            
-            try:
-                for dork in dorks.readlines():
-                    #print(dork)
-                    websites = get_all(dork, args.page, proxy=args.proxy)
-                    std.stdout("Found %s websites to scan\tTotal: %s" % (len(websites), len(urls)))
-                    
-                    if websites is not []:
+            for dork in dorks.readlines():
+                std.stdout("Current dork: %s" % (dork), end='\n')
+                websites = get_all(dork, args.page, proxy=args.proxy)
+                std.stdout("Found %s websites to scan\tTotal: %s" % (len(websites), len(urls)))
+                for url in websites:
+                    std.stdout("URL: %s " % (url), end='\n')
+                    if args.scrape is True:
+                        logger.info("Starting crawling process on %s ", str(url))
+                        urls.append(url)
+                        crawler.setoptions(depth=args.scrape, proxy=args.proxy)
+                        crawled = crawler.crawl(url, proxy=args.progy)
+                        for url in crawled:
+                            websites.append(url)
+                            logger.debug("Added %s from crawling process to full website list.", url)
+                    std.stdout("Starting scanner on targets.", end="\n")
+                    vuln = scanner.scan(websites, proxy=args.proxy, threads=args.threads)
+                    std.stdout("found: %s, %d" % (vuln, len(vuln)), end="\n")
+                    for v in vuln:
+                        vulns.append(v)
+                        url = v[0]
+                        db  = v[1]
+                        #print(url, db)
+                        logger.debug("Found vuln: URL: [ {0} ] , DB: [ {1} ] ".format(str(url), str(db)) )
+                        with open("vuln.txt", "a+") as f:
+                            f.write("%s - %s\n" % (url, db))
+                            f.close()
+                    if args.save is True:
                         for url in websites:
-                            if args.scrape is True:
-                                logger.info("Starting crawling process on %s ", str(url))
-                                urls.append(url)
-                                crawler.setoptions(depth=args.scrape, proxy=args.proxy)
-                                crawled = crawler.crawl(url, proxy=args.progy)
-                                for url in crawled:
-                                    websites.append(url)
-                                    logger.debug("Added %s from crawling process to full website list.", url)
-                            if args.save is True:
-                                for url in websites:
-                                    with open("search.txt", "a+") as f:
-                                        f.write("%s\n" % (url))
-                                        f.close()
-
-                        std.stdout("Starting scanner on targets.", end="\n")
-                        vuln = scanner.scan(websites, proxy=args.proxy, threads=args.threads)
-                        std.stdout(vuln, end="\n")
-                        for v in vuln:
-                            vulns.append(v)
-                            url = v[0]
-                            db  = v[1]
-                            #print(url, db)
-                            logger.debug("Found vuln: URL: [ {0} ] , DB: [ {1} ] ".format(str(url), str(db)) )
-                            with open("vuln.txt", "a+") as f:
-                                f.write("%s - %s\n" % (url, db))
+                            with open("search.txt", "a+") as f:
+                                f.write("%s\n" % (url))
                                 f.close()
-                            #exit(1)
-                
-                vulnerableurls = [result[0] for result in vulns]
-                table_data = serverinfo.check(vulnerableurls)
-                
-                # add db name to info
-                for result, info in zip(vulns, table_data):
-                    info.insert(1, result[1])  # database name
-                    #print(result)
-                
-                std.fullprint(table_data)
-
-            except:
-                print("Exception in user code:")
-                print('-'*60)
-                traceback .print_exc(file=sys.stdout)
-                print('-'*60)
+                    #exit(1)            
+            vulnerableurls = [result[0] for result in vulns]
+            table_data = serverinfo.check(vulnerableurls)
+            
+            # add db name to info
+            for result, info in zip(vulns, table_data):
+                info.insert(1, result[1])  # database name
+                #print(result)
+            
+            std.fullprint(table_data)
     if args.engine is not "all" and args.dork:
         found = []
         with open(args.dork, "r+") as f:
@@ -308,6 +299,8 @@ def main():
                     found.append((vuln))
         print(found)
         exit(1)
+    if args.list != None:
+        scan(file=str(args.list))
     else:
         print(parser.description)
         parser.print_usage()

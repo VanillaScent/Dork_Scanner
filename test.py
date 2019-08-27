@@ -1,6 +1,7 @@
 import logging
 import src.crawler as crawler 
 import src.scanner as scanner
+import src.std as std
 import sys
 from lib import ecosia, bing
 
@@ -36,14 +37,15 @@ print(links)
 time.sleep(4)
 
 print(links)
-vulns = scanner.scan(links, None, 50)
+time.sleep(3)
+vulns = scanner.scan(links, 10)
 std.stdout(vulns, end="\n")
 for v in vulns:
     vulns.append(v)
     url = v[0]
     db  = v[1]
     #print(url, db)
-    logger.debug("Found vuln: URL: [ {0} ] , DB: [ {1} ] ".format(str(url), str(db)) )
+    logger.info("Found vuln: URL: [ {0} ] , DB: [ {1} ] ".format(str(url), str(db)) )
     with open("vuln.txt", "a+") as f:
         f.write("%s - %s\n" % (url, db))
         f.close()

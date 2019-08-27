@@ -22,14 +22,10 @@ class Search():
 class Ecosia(Search):
     """done?"""
     def search(self, query, pages=10, proxy=None):
-        page = 1
         links = []
         #logger.info("Fetching pages on Ecosia.org")
-        while(page < pages):
-            for url in ecosia.get_page(query, page, None):
-                links.append(url)
-            
-            page += 1
+        for url in ecosia.search(query, pages, proxy):
+            links.append(url)
         return links
 	
 class Yandex(Search):
