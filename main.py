@@ -127,27 +127,28 @@ def get_all(dork, page, proxy=None, safe=True):
     
     links = []
     try:
-        for url in ecosia.search("?refid=", 50, proxy=proxy):
+        for url in ecosia.search("?refid=", pages=10, proxy=proxy):
             links.append(url)
             logger.info("[Ecosia] Found page: %s" % (url))
-        for url in bing.search(dork, pages=50, proxy=proxy):
+        for url in bing.search(dork, pages=10, proxy=proxy):
             links.append(url)
             std.stdout("[Bing] Found URL: %s" % (url))
-        for url in google.search(dork, pages=10, proxy=proxy):
+        for url in google.search(query=dork, pages=10, proxy=proxy):
             if url is not None:
                 links.append(url)
                 std.stdout("[Google] Found URL: %s" % (url))
         for url in duckduckgo.search(query=dork):
             links.append(url)
             std.stdout("[DuckDuckGo] Found URL: %s" % (url)) 
-        for url in yahoo.search(dork, per_page=10, pages=10, proxy=proxy):
+        for url in yahoo.search(dork, per_page=50, pages=15, proxy=proxy):
             links.append(url)
             std.stdout("[Yahoo] Found URL: %s" % (url))
-        for url in yandex.search(dork, pages=10, proxy=Proxy):
+        for url in yandex.search(dork, pages=10, proxy=proxy):
             links.append(url)
             std.stdout("[Yandex] Found URL: %s" % (url))
     except BaseException as e:
         std.stdout("An error occured. %s " % (e))
+    time.sleep(2)
     return links
 
 def scan(file="search.txt"):
@@ -187,9 +188,9 @@ def search(dork, engine, proxy=None):
         #@TODO:
         #   Add proxy usage to google lib
         logger.critical("Google library NOT supported yet.")
-        #for url in google.search(dork, pages=10, proxy):
-        #    links.append(url)
-        #    std.stdout("[Google] Found URL: %s " % (url))
+        for url in google.search(query=dork, pages=10, proxy=proxy):
+            links.append(url)
+            std.stdout("[Google] Found URL: %s " % (url))
     
     if engine == "bing":
         for url in bing.search(dork, pages=10, proxy=proxy):
@@ -260,9 +261,7 @@ def main():
                         for url in crawled:
                             websites.append(url)
                             logger.debug("Added %s from crawling process to full website list.", url)
-                    std.stdout("Starting scanner on targets.", end="\n")
                     vuln = scanner.scan(websites, proxy=args.proxy, threads=args.threads)
-                    std.stdout("found: %s, %d" % (vuln, len(vuln)), end="\n")
                     for v in vuln:
                         vulns.append(v)
                         url = v[0]

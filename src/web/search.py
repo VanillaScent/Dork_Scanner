@@ -73,7 +73,7 @@ class Google(Search):
         urls = []
 
         try:
-            for url in google.search(query, start=0, stop=pages):
+            for url in google.search(query, start=0, stop=pages, num=pages):
                 urls.append(url)
         except urllib.error.HTTPError as e:
             if e.code == 429:
