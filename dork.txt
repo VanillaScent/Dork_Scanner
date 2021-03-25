@@ -1,7 +1,0 @@
-cart.php?id=
-checkout.php?id=
-checkout.php?catid=
-cart.php?catid=
-checkout.php?UserID=
-cart.php?UserID=
-cart_validate.php?iD=

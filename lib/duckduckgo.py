@@ -1,73 +1,30 @@
-# Unofficial DuckDuckGo scraper
-__name__ = "python-duckduckgo"
+import requests
+from lxml import html
+import time
+class Duckduckgo():   
+    def search(self, query, pages=10, proxy=None, max_results=None):
+        url = 'https://duckduckgo.com/html/'
+        params = {
+            'q': query,
+            's': '0',
+        }
 
-import urllib
-import bs4
-import logging
+        yielded = 0
+        while True:
+            res = requests.post(url, data=params)
+            doc = html.fromstring(res.text)
 
-logger = logging.getLogger(__name__)
-
-from urllib import request
-from urllib.request import urlopen
-
-import src.web.useragents as ua
-
-DEFAULT_CONTENTYPE = "application/x-www-form-urlencoded"
-DEFAULT_USERAGENT = ua.get()
-
-class Duckduckgo:
-    """DuckDuckGo search engine scraper"""
-
-    def __init__(self):
-        self.duckduckgosearch = "https://duckduckgo.com/=%s"
-        self.init_header()
-
-    def init_header(self, contenttype=DEFAULT_CONTENTYPE, useragent=DEFAULT_USERAGENT):
-        """initialize header"""
-
-        self.contenttype = contenttype
-        self.useragent = useragent
-        logger.info("[DuckDuckGo] headers initialized:\n\tContent-Type: %s\n\tUser-Agent: %s\n" % (self.contenttype, self.useragent))
-
-    def search(self, query, proxy=None):
-        """search urls from duckduckgo search"""
-
-        # store searched urls
-        urls = []
-
-        self.useragent = str(ua.get())
-        logger.info("[DuckDuckGo] Creating HTTP object.")
-        duckduckgosearch = (self.duckduckgosearch % (urllib.parse.quote_plus(query)) )
-        logger.info("DuckDuckGo URL is : %s ", duckduckgosearch)
-        req = request.Request(duckduckgosearch)
-
-        if proxy is not None:
-            prType, proxy = proxy.split("://")
-            req.set_proxy(proxy, prType)
-        
-        req.add_header("Accept","*/*")
-        req.add_header("Referrer", "https://duckduckgo.com/")
-        req.add_header("Content-type", str(self.contenttype))
-        req.add_header("User-Agent", str(self.useragent))
-        logger.info("HTTP Object Headers: %s ", str(req.headers))
-         
-        response = urllib.request.urlopen(req, timeout=5)
-        logger.info("Response is %s ", str(response.getcode()))
-        result = response.read().decode('utf-8')
-        logger.debug(result)
-        urls += self.parse_links(result)
-        logger.info(urls)
-        
-        return urls
-
-    def parse_links(self, html):
-        """scrape results (url) from html"""
-
-        # init with empty list
-        links = []
-
-        soup = bs4.BeautifulSoup(html, "lxml")
-        divs = soup.findAll('div', {"class": "links_main"})
-        for div in divs:
-            links += [a['href'] for a in div.findAll('a', {"class": "result__url"}, href=True) if a['href'] not in links and str(a['href']).startswith('/l/') is False]
-        return links
+            results = [a.get('href') for a in doc.cssselect('#links .links_main a')]
+            print(results)
+            for result in results:
+                yield result
+                time.sleep(0.1)
+                yielded += 1
+                if max_results and yielded >= max_results:
+                    return
+            try:
+                form = doc.cssselect('.results_links_more form')[-1]
+            except IndexError:
+                return
+            params = dict(form.fields)
+            print(params)

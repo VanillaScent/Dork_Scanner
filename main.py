@@ -137,7 +137,7 @@ def get_all(dork, page, proxy=None, safe=True):
             if url is not None:
                 links.append(url)
                 std.stdout("[Google] Found URL: %s" % (url))
-        for url in duckduckgo.search(query=dork):
+        for url in duckduckgo.search(query=dork, pages=10):
             links.append(url)
             std.stdout("[DuckDuckGo] Found URL: %s" % (url)) 
         for url in yahoo.search(dork, per_page=50, pages=15, proxy=proxy):
@@ -174,13 +174,11 @@ def search(dork, engine, proxy=None):
         #@TODO:
         #   Fix duckduckgo.
         logger.info("Beware: DuckdDuckGo library is SOMEWHAT functional.")
-        ddg = duckduckgo.search(dork, 10, proxy=proxy)
+        ddg = duckduckgo.search(dork, 10)
         if ddg is not None:
             for url in ddg:
                 links.append(url)
                 std.stdout("[DuckDuckGo] Found URL: %s " %(url))
-        if ddg is None:
-            logger.critical("Found no urls on DuckDuckGo.")
         else:
             logger.critical("what the fuck?")
     
@@ -188,9 +186,13 @@ def search(dork, engine, proxy=None):
         #@TODO:
         #   Add proxy usage to google lib
         logger.critical("Google library NOT supported yet.")
-        for url in google.search(query=dork, pages=10, proxy=proxy):
-            links.append(url)
-            std.stdout("[Google] Found URL: %s " % (url))
+        
+        urls = google.search(query=dork, pages=10, proxy=proxy)
+        if urls != None:
+            for url in urls:
+                links.append(url)
+                std.stdout("[Google] Found URL: %s " % (url))
+        
     
     if engine == "bing":
         for url in bing.search(dork, pages=10, proxy=proxy):
@@ -291,11 +293,16 @@ def main():
         with open(args.dork, "r+") as f:
             for dork in f.readlines():
                 urls = search(dork, args.engine, args.proxy)
-                vulns = scanner.scan(urls, proxy=args.proxy)
 
-                for vuln in vulns:
-                    print(vuln[0], vuln[1])
-                    found.append((vuln))
+                if urls != None:
+                    logger.info("found: {0} sites!".format(len(urls)))
+                else:
+                    logger.critical("no sites found")
+                #vulns = scanner.scan(urls, proxy=args.proxy)
+
+                #for vuln in vulns:
+                #    print(vuln[0], vuln[1])
+                #    found.append((vuln))
         print(found)
         exit(1)
     if args.list != None:

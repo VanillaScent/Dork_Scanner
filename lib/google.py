@@ -287,34 +287,37 @@ def search(query, tld='com', lang='en', tbs='0', safe='off', num=10, start=0,
             soup = BeautifulSoup(html, 'html.parser')
         else:
             soup = BeautifulSoup(html)
-        anchors = soup.find(id='search').findAll('a')
-        for a in anchors:
+        anchors = soup.find(id='search')
+        
+        if anchors != None:
+            anchors.findAll('a')
+            for a in anchors:
 
-            # Leave only the "standard" results if requested.
-            # Otherwise grab all possible links.
-            if only_standard and (
-                    not a.parent or a.parent.name.lower() != "h3"):
-                continue
+                # Leave only the "standard" results if requested.
+                # Otherwise grab all possible links.
+                if only_standard and (
+                        not a.parent or a.parent.name.lower() != "h3"):
+                    continue
 
-            # Get the URL from the anchor tag.
-            try:
-                link = a['href']
-            except KeyError:
-                continue
+                # Get the URL from the anchor tag.
+                try:
+                    link = a['href']
+                except KeyError:
+                    continue
 
-            # Filter invalid links and links pointing to Google itself.
-            link = filter_result(link)
-            if not link:
-                continue
+                # Filter invalid links and links pointing to Google itself.
+                link = filter_result(link)
+                if not link:
+                    continue
 
-            # Discard repeated results.
-            h = hash(link)
-            if h in hashes:
-                continue
-            hashes.add(h)
+                # Discard repeated results.
+                h = hash(link)
+                if h in hashes:
+                    continue
+                hashes.add(h)
 
-            # Yield the result.
-            yield link
+                # Yield the result.
+                yield link
 
         # End if there are no more results.
         if not soup.find(id='nav'):
